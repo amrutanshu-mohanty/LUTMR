@@ -1,0 +1,75 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity testbench is
+end testbench;
+
+architecture Behavioral of testbench is
+    -- Constants for the test
+    constant CLK_PERIOD : time := 10 ns;
+
+    -- Signal declarations
+    signal clk     : STD_LOGIC := '0';
+    signal reset   : STD_LOGIC := '0';
+    signal m       : STD_LOGIC_VECTOR(511 downto 0) := (others => '0');
+    signal result  : STD_LOGIC_VECTOR(254 downto 0);
+
+    -- Component declaration
+    component LUTMR_Modulo is
+        generic (
+            BLOCK_WIDTH : integer := 6;
+            M_WIDTH     : integer := 512;
+            P_WIDTH     : integer := 255
+        );
+        port (
+            clk     : in  STD_LOGIC;
+            reset   : in  STD_LOGIC;
+            m       : in  STD_LOGIC_VECTOR(M_WIDTH-1 downto 0);
+            result  : out STD_LOGIC_VECTOR(P_WIDTH-1 downto 0)
+        );
+    end component;
+
+begin
+    -- Clock generation
+    clk_process: process
+    begin
+        clk <= '0';
+        wait for CLK_PERIOD / 2;
+        clk <= '1';
+        wait for CLK_PERIOD / 2;
+    end process;
+
+    -- Instantiate the Unit Under Test (UUT)
+    uut: LUTMR_Modulo
+        port map (
+            clk     => clk,
+            reset   => reset,
+            m       => m,
+            result  => result
+        );
+
+    -- Test process
+    stim_proc: process
+    begin
+        -- Reset the system
+        reset <= '1';
+        wait for CLK_PERIOD * 2;
+        reset <= '0';
+        wait for CLK_PERIOD;
+
+        -- Test case 1
+        m <= X"0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF";
+        wait for CLK_PERIOD * 10;
+
+        -- Test case 2
+        m <= X"FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210FEDCBA9876543210";
+        wait for CLK_PERIOD * 10;
+
+        -- Add more test cases as needed
+
+        -- End of test
+        wait;
+    end process;
+end Behavioral;

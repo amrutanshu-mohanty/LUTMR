@@ -1,0 +1,110 @@
+Designing \( m \mod p \) where \( m \) is a 512-bit integer and \( p = 2^{255} - 19 \), using the *Lookup Table Modular Reduction (LUTMR)* scheme involves the following steps:
+
+---
+
+### *1. Problem Breakdown*
+- \( m \) is 512 bits long.
+- \( p = 2^{255} - 19 \), which is a prime number.
+- *Goal*: Reduce \( m \) modulo \( p \) efficiently using LUTMR.
+
+#### *LUTMR Setup:*
+- *Block Width*:
+  - *6-bit blocks*: Divide the 512 bits into blocks of 6 bits each.
+  - *8-bit blocks*: Divide the 512 bits into blocks of 8 bits each.
+
+For both block sizes, the modular reduction is performed using:
+1. *Inference step*: Precompute values for top bits and store in lookup tables.
+2. *Addition step*: Combine results from inference with lower bits.
+3. *Adjustment step*: Ensure the result is less than \( p \).
+
+---
+
+### *2. Steps for 6-bit Block Width*
+
+#### *a. Number of Blocks*
+Divide \( m \) into blocks of 6 bits:
+\[
+\text{Number of 6-bit blocks} = \lceil 512 / 6 \rceil = 86 \, \text{blocks.}
+\]
+
+#### *b. Precomputed Lookup Table*
+For a 6-bit block, the input range is \( 0 \) to \( 2^6 - 1 = 63 \). For each value in this range:
+\[
+\text{Precompute: } \text{(Index)} \times 2^{6k} \mod p, \, \text{where } k \text{ is the block position.}
+\]
+- Example: For block 1 (6 bits), multiply by \( 2^6 \mod p \), for block 2, multiply by \( 2^{12} \mod p \), etc.
+- Store results in a *lookup table* with 64 entries per block.
+
+#### *c. Modular Reduction Process*
+1. *Inference Step*:
+   - For each block, use the 6-bit value as an index to the lookup table.
+   - Retrieve the precomputed modular reduction value for that block.
+
+2. *Addition Step*:
+   - Sum all the values retrieved from the lookup table across the 86 blocks.
+
+3. *Adjustment Step*:
+   - If the sum exceeds \( p \), subtract \( p \) repeatedly until the value is less than \( p \).
+
+---
+
+### *3. Steps for 8-bit Block Width*
+
+#### *a. Number of Blocks*
+Divide \( m \) into blocks of 8 bits:
+\[
+\text{Number of 8-bit blocks} = \lceil 512 / 8 \rceil = 64 \, \text{blocks.}
+\]
+
+#### *b. Precomputed Lookup Table*
+For an 8-bit block, the input range is \( 0 \) to \( 2^8 - 1 = 255 \). For each value in this range:
+\[
+\text{Precompute: } \text{(Index)} \times 2^{8k} \mod p, \, \text{where } k \text{ is the block position.}
+\]
+- Example: For block 1 (8 bits), multiply by \( 2^8 \mod p \), for block 2, multiply by \( 2^{16} \mod p \), etc.
+- Store results in a *lookup table* with 256 entries per block.
+
+#### *c. Modular Reduction Process*
+1. *Inference Step*:
+   - For each block, use the 8-bit value as an index to the lookup table.
+   - Retrieve the precomputed modular reduction value for that block.
+
+2. *Addition Step*:
+   - Sum all the values retrieved from the lookup table across the 64 blocks.
+
+3. *Adjustment Step*:
+   - If the sum exceeds \( p \), subtract \( p \) repeatedly until the value is less than \( p \).
+
+---
+
+### *4. Resource Considerations*
+
+#### *6-bit Block Width*
+- *Number of Lookup Entries*: \( 64 \) entries per block.
+- *Number of Blocks*: \( 86 \).
+- *Memory Usage*:
+  \[
+  64 \, \text{entries} \times 86 \, \text{blocks} = 5,504 \, \text{entries}.
+  \]
+
+#### *8-bit Block Width*
+- *Number of Lookup Entries*: \( 256 \) entries per block.
+- *Number of Blocks*: \( 64 \).
+- *Memory Usage*:
+  \[
+  256 \, \text{entries} \times 64 \, \text{blocks} = 16,384 \, \text{entries}.
+  \]
+
+---
+
+### *5. Which Block Width to Choose?*
+- *6-bit blocks*:
+  - Lower memory usage (fewer table entries).
+  - Requires more blocks and additions.
+- *8-bit blocks*:
+  - Higher memory usage (larger lookup tables).
+  - Fewer blocks and additions, potentially faster.
+
+---
+
+Would you like me to implement this as pseudocode or provide a specific hardware design approach?
